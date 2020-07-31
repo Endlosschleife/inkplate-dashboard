@@ -19,10 +19,15 @@ Inkplate display(INKPLATE_3BIT);    //Create an object on Inkplate library and a
 const size_t capacity = JSON_ARRAY_SIZE(3) + JSON_ARRAY_SIZE(4) + 5*JSON_OBJECT_SIZE(3) + 4*JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(6) + 1000;
 DynamicJsonDocument doc(capacity);
 
+// weather icon mapping
+String conditions[] = {"CLEAR_NIGHT", "CLOUDY", "FOG", "HAIL", "LIGHTNING", "LIGHTNING_RAINY", "PARTLY_CLOUDY", "POURING", "RAINY", "SNOWY", "SNOWY_RAINY", "SUNNY", "WINDY", "WINDY_VARIANT", "EXCEPTIONAL"};
+const uint8_t *logos[15] = {icon_clear_night, icon_cloudy, icon_fog, icon_hail, icon_lightning, icon_lightning_rainy, icon_partly_cloudy, icon_pouring, icon_rainy, icon_snowy, icon_snowy_rainy, icon_sunny, icon_windy, icon_windy_variant, icon_exceptional};
+
 void connectWifi();
 void fetchData();
 void drawDate();
 void drawWeather();
+const uint8_t* find_weather_icon(String condition);
 
 void setup() {
   Serial.begin(9600);
@@ -118,16 +123,16 @@ void drawDate() {
 
 void drawWeather() {
   JsonObject weatherJson = doc["weather"];
+  String condition = weatherJson["condition"].as<String>();
   String condition_text = weatherJson["conditionText"].as<String>();
   float temperature_float = weatherJson["temperature"].as<float>();
   String temperature = String(temperature_float, 0); // second param is precision
 
-  display.drawRoundRect(470, 5, 310, 300, 10, BLACK); //Arguments are: start X, start Y, width, height, radius, color
-  display.drawLine(470, 150, 780, 150, BLACK);
+  display.drawRoundRect(470, 5, 320, 300, 10, BLACK); //Arguments are: start X, start Y, width, height, radius, color
+  display.drawLine(470, 160, 790, 160, BLACK);
   
   // condition icon
-  display.drawBitmap(480, 10, icon_c, 150, 150, BLACK);
-
+  display.drawBitmap(480, 7, find_weather_icon(condition), 150, 150, BLACK);
   display.setTextSize(1);
 
   // temperature
@@ -141,6 +146,14 @@ void drawWeather() {
   display.setCursor(800 - 160, 140);
   display.println(condition_text);
   
+}
+
+const uint8_t* find_weather_icon(String condition) {
+  for (int i = 0; i < 15; ++i) { 
+    if (conditions[i].equals(condition)) {
+      return logos[i];
+    }
+  }
 }
 
 void loop() {
