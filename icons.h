@@ -17,4 +17,6 @@
 #include "binary_icons/icon_windy_variant.h"
 #include "binary_icons/icon_windy.h"
 
+#include "binary_icons/icon_cloudy_50.h"
+
 #endif

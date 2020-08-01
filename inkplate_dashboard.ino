@@ -122,31 +122,52 @@ void drawDate() {
 }
 
 void drawWeather() {
+
+  const int x = 470;
+  const int y = 5;
+  const int width = 320;
+  const int height = 300;
+  const int forecast_line_y = y + 155;
+  const int forecast_end_y = forecast_line_y + height - 155;
+  
   JsonObject weatherJson = doc["weather"];
   String condition = weatherJson["condition"].as<String>();
   String condition_text = weatherJson["conditionText"].as<String>();
   float temperature_float = weatherJson["temperature"].as<float>();
   String temperature = String(temperature_float, 0); // second param is precision
 
-  display.drawRoundRect(470, 5, 320, 300, 10, BLACK); //Arguments are: start X, start Y, width, height, radius, color
-  display.drawLine(470, 160, 790, 160, BLACK);
+  // draw box
+  display.drawRoundRect(x, y, width, height, 10, BLACK); //Arguments are: start X, start Y, width, height, radius, color
+  display.drawLine(x, forecast_line_y, x + width, forecast_line_y, BLACK);
+  display.drawLine(x + width / 3, forecast_line_y, x + width / 3, forecast_end_y, BLACK); // first column
+  display.drawLine(x + (width / 3) * 2, forecast_line_y, x + (width / 3) * 2, forecast_end_y, BLACK); // second column
   
   // condition icon
-  display.drawBitmap(480, 7, find_weather_icon(condition), 150, 150, BLACK);
+  display.drawBitmap(x + 10, y + 2, find_weather_icon(condition), 150, 150, BLACK);
   display.setTextSize(1);
 
   // temperature
   display.setTextColor(BLACK, WHITE);
   display.setFont(&Roboto_Bold_96);
-  display.setCursor(800 - 160, 90);
+  display.setCursor(x + width - 150, y + 85);
   display.println(temperature);
 
   // condtition text
   display.setFont(&Roboto_36);
-  display.setCursor(800 - 160, 140);
+  display.setCursor(x + width - 150, y + 130);
   display.println(condition_text);
+
+  // forecast
+  JsonArray forecastArray = weatherJson["forecast"].as<JsonArray>();
+
+  // 1. forecast
+  String forecast_1_condition = forecastArray[0]["condition"].as<String>();
+  display.drawBitmap(x + 10, forecast_line_y, icon_cloudy_50, 150, 150, BLACK);
+  
   
 }
+
+
 
 const uint8_t* find_weather_icon(String condition) {
   for (int i = 0; i < 15; ++i) { 
