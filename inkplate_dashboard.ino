@@ -2,6 +2,7 @@
 #include "HTTPClient.h"             //Include library for HTTPClient
 #include "WiFi.h"                   //Include library for WiFi
 #include <ArduinoJson.h>
+#include "driver/rtc_io.h"
 
 // Including fonts used
 #include "Fonts/Roboto_Light_36.h"
@@ -14,6 +15,9 @@
 
 #include "icons.h"
 #include "config.h"
+
+#define uS_TO_S_FACTOR 1000000    //Conversion factor for micro seconds to seconds
+#define TIME_TO_SLEEP  60 * 30    // seconds
 
 Inkplate display(INKPLATE_3BIT);    //Create an object on Inkplate library and also set library into 1 Bit mode (Monochrome)
 
@@ -35,19 +39,25 @@ void printCenteredText(const String &buf, int x, int y);
 
 void setup() {
   Serial.begin(9600);
-  
   display.begin();
-  display.clearDisplay();
-  display.display();
 
   connectWifi();
-  display.clearDisplay();
-
   fetchData();
+  
+  display.clearDisplay();
+  Serial.println("Cleared display to draw new content");
 
   drawDate();
   drawWeather();
   display.display();
+
+  Serial.println("Written data to display");
+  Serial.println("Send inkplate to deep sleep");
+
+  // send inkplate to deep sleep
+  rtc_gpio_isolate(GPIO_NUM_12); //Isolate/disable GPIO12 on ESP32 (only to reduce power consumption in sleep)
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  esp_deep_sleep_start();
 }
 
 void connectWifi() {
@@ -74,7 +84,14 @@ void connectWifi() {
     WiFi.mode(WIFI_MODE_STA);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     delay(3000);
+
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("Could still not connect to wifi.");
+    } else {
+      Serial.println("Connected to Wifi successfully.");
+    }
   }
+
 }
 
 void fetchData() {
