@@ -7,6 +7,8 @@
 #include "Fonts/Roboto_Light_36.h"
 #include "Fonts/Roboto_Light_48.h"
 #include "Fonts/Roboto_Light_120.h"
+#include "Fonts/Roboto_18.h"
+#include "Fonts/Roboto_28.h"
 #include "Fonts/Roboto_36.h"
 #include "Fonts/Roboto_Bold_96.h"
 
@@ -159,11 +161,21 @@ void drawWeather() {
 
   // forecast
   JsonArray forecastArray = weatherJson["forecast"].as<JsonArray>();
+  for(int i = 0; i < 3; i++) {
+    String forecast_1_condition = forecastArray[i]["condition"].as<String>();
+    String forecast_1_temperature = forecastArray[i]["temperature"].as<String>();
+    String forecast_1_time = forecastArray[i]["datetime"].as<String>();
+    //display.drawBitmap(x + 10, forecast_line_y, icon_cloudy_50, 150, 150, BLACK);
+    int startX = x + i * (width / 3);
+    
+    display.setFont(&Roboto_18);
+    display.setCursor(startX + 25, forecast_line_y + 20);
+    display.println(forecast_1_time.substring(11, 13) + " Uhr");    
 
-  // 1. forecast
-  String forecast_1_condition = forecastArray[0]["condition"].as<String>();
-  display.drawBitmap(x + 10, forecast_line_y, icon_cloudy_50, 150, 150, BLACK);
-  
+    display.setFont(&Roboto_28);
+    display.setCursor(startX + 25, forecast_end_y - 10);
+    display.println(forecast_1_temperature);    
+  }
   
 }
 
