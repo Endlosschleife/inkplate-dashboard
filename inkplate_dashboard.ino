@@ -106,21 +106,21 @@ void drawDate() {
   display.setTextSize(1);
 
   // day
-  display.fillRoundRect(5, 10, 120, 90, 10, 6); //Arguments are: start X, start Y, width, height, radius, color
+  display.fillRoundRect(5, 5, 120, 90, 5, 6); //Arguments are: start X, start Y, width, height, radius, color
   display.setTextColor(BLACK);
   display.setFont(&Roboto_Bold_96);
-  printCenteredText(day, 60, 90);
+  printCenteredText(day, 60, 85);
 
   // day of week
   display.setFont(&Roboto_Light_48);
   display.setTextColor(BLACK);
-  display.setCursor(130, 48);
+  display.setCursor(130, 43);
   display.print(day_of_week);
 
   // month
   display.setFont(&Roboto_Light_48);
   display.setTextColor(BLACK);
-  display.setCursor(130, 48 * 2);
+  display.setCursor(130, 43 * 2);
   display.println(month);
 }
 
