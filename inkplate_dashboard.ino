@@ -30,6 +30,7 @@ void fetchData();
 void drawDate();
 void drawWeather();
 const uint8_t* find_weather_icon(String condition);
+void printCenteredText(const String &buf, int x, int y);
 
 void setup() {
   Serial.begin(9600);
@@ -107,8 +108,7 @@ void drawDate() {
   display.fillRoundRect(5, 10, 120, 90, 10, 6); //Arguments are: start X, start Y, width, height, radius, color
   display.setTextColor(BLACK);
   display.setFont(&Roboto_Bold_96);
-  display.setCursor(10, 90);
-  display.print(day);
+  printCenteredText(day, 60, 90);
 
   // day of week
   display.setFont(&Roboto_Light_48);
@@ -187,6 +187,14 @@ const uint8_t* find_weather_icon(String condition) {
       return logos[i];
     }
   }
+}
+
+void printCenteredText(const String &buf, int x, int y) {
+    int16_t x1, y1;
+    uint16_t w, h;
+    display.getTextBounds(buf, x, y, &x1, &y1, &w, &h); 
+    display.setCursor(x - w / 2, y);
+    display.print(buf);
 }
 
 void loop() {
