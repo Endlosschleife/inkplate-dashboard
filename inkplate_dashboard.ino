@@ -24,12 +24,13 @@ DynamicJsonDocument doc(capacity);
 // weather icon mapping
 String conditions[] = {"CLEAR_NIGHT", "CLOUDY", "FOG", "HAIL", "LIGHTNING", "LIGHTNING_RAINY", "PARTLY_CLOUDY", "POURING", "RAINY", "SNOWY", "SNOWY_RAINY", "SUNNY", "WINDY", "WINDY_VARIANT", "EXCEPTIONAL"};
 const uint8_t *logos[15] = {icon_clear_night, icon_cloudy, icon_fog, icon_hail, icon_lightning, icon_lightning_rainy, icon_partly_cloudy, icon_pouring, icon_rainy, icon_snowy, icon_snowy_rainy, icon_sunny, icon_windy, icon_windy_variant, icon_exceptional};
+const uint8_t *logos_56[15] = {icon_clear_night_56, icon_cloudy_56, icon_fog_56, icon_hail_56, icon_lightning_56, icon_lightning_rainy_56, icon_partly_cloudy_56, icon_pouring_56, icon_rainy_56, icon_snowy_56, icon_snowy_rainy_56, icon_sunny_56, icon_windy_56, icon_windy_variant_56, icon_exceptional_56};
 
 void connectWifi();
 void fetchData();
 void drawDate();
 void drawWeather();
-const uint8_t* find_weather_icon(String condition);
+const uint8_t* find_weather_icon(String condition, boolean small);
 void printCenteredText(const String &buf, int x, int y);
 
 void setup() {
@@ -78,7 +79,7 @@ void connectWifi() {
 
 void fetchData() {
   HTTPClient http;
-  http.begin("http://192.168.178.87:8080/dashboard");
+  http.begin(API_URL);
   int httpCode = http.GET();
 
   if (httpCode != 200) {
@@ -145,7 +146,7 @@ void drawWeather() {
   display.drawLine(x + (width / 3) * 2, forecast_line_y, x + (width / 3) * 2, forecast_end_y, BLACK); // second column
   
   // condition icon
-  display.drawBitmap(x + 10, y + 2, find_weather_icon(condition), 150, 150, BLACK);
+  display.drawBitmap(x + 10, y + 2, find_weather_icon(condition, false), 150, 150, BLACK);
   display.setTextSize(1);
 
   // temperature
@@ -162,29 +163,34 @@ void drawWeather() {
   // forecast
   JsonArray forecastArray = weatherJson["forecast"].as<JsonArray>();
   for(int i = 0; i < 3; i++) {
-    String forecast_1_condition = forecastArray[i]["condition"].as<String>();
-    String forecast_1_temperature = forecastArray[i]["temperature"].as<String>();
-    String forecast_1_time = forecastArray[i]["datetime"].as<String>();
-    //display.drawBitmap(x + 10, forecast_line_y, icon_cloudy_50, 150, 150, BLACK);
+    String forecast_condition = forecastArray[i]["condition"].as<String>();
+    String forecast_temperature = forecastArray[i]["temperature"].as<String>();
+    String forecast_time = forecastArray[i]["datetime"].as<String>();
     int startX = x + i * (width / 3);
-    
+
     display.setFont(&Roboto_18);
     display.setCursor(startX + 25, forecast_line_y + 20);
-    display.println(forecast_1_time.substring(11, 13) + " Uhr");    
+    display.println(forecast_time.substring(11, 13) + " Uhr");    
+
+    display.drawBitmap(startX + 27, forecast_line_y + 40, find_weather_icon(forecast_condition, true), 56, 56, BLACK);
 
     display.setFont(&Roboto_28);
     display.setCursor(startX + 25, forecast_end_y - 10);
-    display.println(forecast_1_temperature);    
+    display.println(forecast_temperature);    
   }
   
 }
 
 
 
-const uint8_t* find_weather_icon(String condition) {
+const uint8_t* find_weather_icon(String condition, boolean small = false) {
   for (int i = 0; i < 15; ++i) { 
     if (conditions[i].equals(condition)) {
-      return logos[i];
+      if(small) {
+        return logos_56[i];
+      } else {
+        return logos[i];
+      }
     }
   }
 }
