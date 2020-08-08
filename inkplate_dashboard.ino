@@ -11,6 +11,7 @@
 #include "Fonts/Roboto_18.h"
 #include "Fonts/Roboto_28.h"
 #include "Fonts/Roboto_36.h"
+#include "Fonts/Roboto_Bold_48.h"
 #include "Fonts/Roboto_Bold_96.h"
 
 #include "icons.h"
@@ -22,7 +23,7 @@
 Inkplate display(INKPLATE_3BIT);    //Create an object on Inkplate library and also set library into 1 Bit mode (Monochrome)
 
 // Use arduinojson.org/v6/assistant to compute the capacity.
-const size_t capacity = JSON_ARRAY_SIZE(3) + JSON_ARRAY_SIZE(4) + 5*JSON_OBJECT_SIZE(3) + 4*JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(6) + 1000;
+const size_t capacity = 5*JSON_ARRAY_SIZE(5) + 5*JSON_ARRAY_SIZE(5) + JSON_ARRAY_SIZE(4) + 3*JSON_OBJECT_SIZE(3) + 5*JSON_OBJECT_SIZE(4) + 3*JSON_OBJECT_SIZE(6) + 1920;
 DynamicJsonDocument doc(capacity);
 
 // weather icon mapping
@@ -36,6 +37,8 @@ void drawDate();
 void drawWeather();
 const uint8_t* find_weather_icon(String condition, boolean small);
 void printCenteredText(const String &buf, int x, int y);
+void drawUpdateTime();
+void drawCalendarEvents();
 
 void setup() {
   Serial.begin(9600);
@@ -49,15 +52,28 @@ void setup() {
 
   drawDate();
   drawWeather();
+  drawCalendarEvents();
+  drawUpdateTime();
   display.display();
 
   Serial.println("Written data to display");
   Serial.println("Send inkplate to deep sleep");
 
+
   // send inkplate to deep sleep
   rtc_gpio_isolate(GPIO_NUM_12); //Isolate/disable GPIO12 on ESP32 (only to reduce power consumption in sleep)
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
   esp_deep_sleep_start();
+}
+
+void drawUpdateTime() {
+  JsonObject currentDateObject = doc["currentDate"];
+  String time = currentDateObject["time"].as<String>();
+
+  display.setFont(&Roboto_18);
+  display.setCursor(800 - 55, 600 - 5);
+  display.setTextColor(BLACK);
+  display.print(time);
 }
 
 void connectWifi() {
@@ -194,6 +210,66 @@ void drawWeather() {
     display.setFont(&Roboto_28);
     display.setCursor(startX + 25, forecast_end_y - 10);
     display.println(forecast_temperature);    
+  }
+  
+}
+
+
+void drawCalendarEvents() {
+
+  JsonArray eventGroups = doc["events"].as<JsonArray>(); // todo rename events property
+  int y = 110; // start position for this calendar
+
+  for(int i = 0; i < eventGroups.size(); i++) {
+    String title = eventGroups[i]["title"].as<String>();
+    JsonArray events = eventGroups[i]["events"].as<JsonArray>();
+
+    // print title
+    y += 48;
+    display.setFont(&Roboto_Bold_48);
+    display.setTextColor(BLACK);
+    display.setCursor(10, y);
+    display.print(title);
+
+    y += 5; // bottom margin after title
+
+    // print events
+    for(int k = 0; k < events.size(); k++) {
+      String title = events[k]["title"].as<String>();
+      boolean isFullDayEvent = events[k]["fullDayEvent"].as<boolean>();
+
+      y += 42;
+
+      // event time
+      if (!isFullDayEvent) {
+        String startTime = events[k]["start"].as<String>();
+        display.setFont(&Roboto_36);
+        display.setTextColor(BLACK);
+        display.setCursor(10, y);
+        display.print(startTime.substring(11, 16));
+      } else {
+        // todo
+      }
+
+      // event title
+      display.setFont(&Roboto_36);
+      display.setTextColor(BLACK);
+      display.setCursor(120, y);
+      display.print(title);
+      
+      
+    }
+
+    // no events
+    if (events.size() == 0) {
+      y += 36;
+      display.setFont(&Roboto_28);
+      display.setTextColor(BLACK);
+      display.setCursor(10, y);
+      display.print("Keine Termine");
+    }
+
+    y += 40; // some bottom margin
   }
   
 }
