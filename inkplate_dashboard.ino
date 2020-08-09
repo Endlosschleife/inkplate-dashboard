@@ -13,6 +13,7 @@
 #include "Fonts/Roboto_36.h"
 #include "Fonts/Roboto_Bold_48.h"
 #include "Fonts/Roboto_Bold_96.h"
+#include "Fonts/FreeSerif24pt7b.h"
 
 #include "icons.h"
 #include "config.h"
@@ -243,7 +244,7 @@ void drawCalendarEvents() {
       // event time
       if (!isFullDayEvent) {
         String startTime = events[k]["start"].as<String>();
-        display.setFont(&Roboto_36);
+        display.setFont(&Roboto_28);
         display.setTextColor(BLACK);
         display.setCursor(10, y);
         display.print(startTime.substring(11, 16));
@@ -252,9 +253,9 @@ void drawCalendarEvents() {
       }
 
       // event title
-      display.setFont(&Roboto_36);
+      display.setFont(&Roboto_28);
       display.setTextColor(BLACK);
-      display.setCursor(120, y);
+      display.setCursor(110, y);
       display.print(title);
       
       
