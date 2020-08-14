@@ -24,7 +24,7 @@
 Inkplate display(INKPLATE_3BIT);    //Create an object on Inkplate library and also set library into 1 Bit mode (Monochrome)
 
 // Use arduinojson.org/v6/assistant to compute the capacity.
-const size_t capacity = 5*JSON_ARRAY_SIZE(5) + 5*JSON_ARRAY_SIZE(5) + JSON_ARRAY_SIZE(4) + 3*JSON_OBJECT_SIZE(3) + 5*JSON_OBJECT_SIZE(4) + 3*JSON_OBJECT_SIZE(6) + 1920;
+const size_t capacity = JSON_ARRAY_SIZE(5) + JSON_ARRAY_SIZE(5) + JSON_ARRAY_SIZE(5) + 2*JSON_ARRAY_SIZE(4) + 6*JSON_OBJECT_SIZE(3) + 6*JSON_OBJECT_SIZE(4) + 2*JSON_OBJECT_SIZE(6) + 2000;
 DynamicJsonDocument doc(capacity);
 
 // weather icon mapping
@@ -40,6 +40,7 @@ const uint8_t* find_weather_icon(String condition, boolean small);
 void printCenteredText(const String &buf, int x, int y);
 void drawUpdateTime();
 void drawCalendarEvents();
+void drawWasteBinCalendar();
 
 void setup() {
   Serial.begin(9600);
@@ -55,6 +56,7 @@ void setup() {
   drawWeather();
   drawCalendarEvents();
   drawUpdateTime();
+  drawWasteBinCalendar();
   display.display();
 
   Serial.println("Written data to display");
@@ -271,6 +273,34 @@ void drawCalendarEvents() {
     }
 
     y += 40; // some bottom margin
+  }
+  
+}
+
+void drawWasteBinCalendar() {
+
+  int x = 470,
+      y = 320;
+
+  y += 50;
+  display.setFont(&Roboto_Bold_48);
+  display.setTextColor(BLACK);
+  display.setCursor(x, y);
+  display.print("Abfall");
+
+  y += 10; // bottom margin
+
+  JsonArray wasteCalendarArray = doc["wasteCalendar"].as<JsonArray>();
+
+  for(int i = 0; i < wasteCalendarArray.size(); i++) {
+    String name = wasteCalendarArray[i]["name"].as<String>();
+    String dateString = wasteCalendarArray[i]["dateString"].as<String>();
+  
+    y += 36;
+    display.setFont(&Roboto_28);
+    display.setTextColor(BLACK);
+    display.setCursor(x, y);
+    display.print(dateString + ": " + name);
   }
   
 }
