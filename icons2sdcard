@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# convert weather icons to bitmaps
+for filename in ./icons/weather/*.png; do
+        size=56
+        convert $filename -resize "${size}x${size}" -channel A -negate -separate "./sdcard/weather/$(basename "$filename" .png)_$size.bmp"
+
+        size=120
+        convert $filename -resize "${size}x${size}" -channel A -negate -separate "./sdcard/weather/$(basename "$filename" .png)_$size.bmp"
+done
