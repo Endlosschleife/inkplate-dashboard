@@ -1,5 +1,5 @@
 #include "Inkplate.h"
-#include "driver/rtc_io.h"     
+#include "driver/rtc_io.h"
 #include <ArduinoJson.h>
 #include "Dashboard.h"
 #include "ImageScreen.h"
@@ -11,7 +11,9 @@
 #define TIME_TO_SLEEP 30 * 60 // time to sleep in seconds
 
 Inkplate display(INKPLATE_3BIT);
-int selectedScreen = 0;
+RTC_DATA_ATTR int selectedScreen = 0;
+
+byte touchPadPin = 10;
 
 // screens
 Dashboard dashboard = Dashboard(display);
@@ -58,6 +60,7 @@ void connectWifi()
 
 void displayScreen()
 {
+  connectWifi();
   display.clearDisplay();
 
   switch (selectedScreen)
@@ -75,6 +78,12 @@ void displayScreen()
 
 void nextScreen()
 {
+  display.clearDisplay();
+  display.setTextColor(BLACK);
+  display.setFont(&Roboto_Bold_36);
+  DisplayHelpers::printCenteredText(display, "Loading Screen...", 400, 300);
+  display.display();
+
   selectedScreen++;
   selectedScreen = selectedScreen % 2;
   displayScreen();
@@ -91,11 +100,28 @@ void setup()
     return;
   }
 
-  connectWifi();
-  displayScreen();
+  // Setup mcp interrupts
+  display.pinModeMCP(touchPadPin, INPUT);
+  display.setIntOutput(1, true, true, HIGH);
+  display.setIntPin(touchPadPin, RISING);
 
+  // handle behaviour using wake up reason
+  esp_sleep_wakeup_cause_t wakeup_reason;
+  wakeup_reason = esp_sleep_get_wakeup_cause();
+  switch (wakeup_reason)
+  {
+  case ESP_SLEEP_WAKEUP_EXT0:
+    nextScreen();
+    break;
+  default:
+    displayScreen();
+    break;
+  }
+
+  // send to deep sleep
   rtc_gpio_isolate(GPIO_NUM_12); //Isolate/disable GPIO12 on ESP32 (only to reduce power consumption in sleep)
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_34, 1); // touchpad wake up
   esp_deep_sleep_start();
 }
 
