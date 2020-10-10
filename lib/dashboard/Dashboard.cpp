@@ -207,7 +207,7 @@ void Dashboard::drawWasteCalendar() {
       display.setTextColor(WHITE);
       display.fillRoundRect(x - 10, y - 40, 140, 90, 3, BLACK);
     } else {
-      display.setTextColor(GRAY_2);
+      display.setTextColor(BLACK);
     }
 
     display.setFont(&Roboto_Bold_36);
