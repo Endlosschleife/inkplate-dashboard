@@ -91,7 +91,7 @@ void Dashboard::drawCalendarEvents()
         display.setFont(&Roboto_28);
         display.setTextColor(WHITE);
         display.setCursor(110, y);
-        display.print(title);
+        DisplayHelpers::printTextWithMaxWidth(display, title, 105, y, 290);
       }
       else
       { // full day event
