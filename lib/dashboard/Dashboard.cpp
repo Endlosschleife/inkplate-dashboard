@@ -170,7 +170,7 @@ void Dashboard::drawWeather()
   for (int i = 0; i < 3; i++)
   {
     String forecast_condition = forecastArray[i]["condition"].as<String>();
-    String forecast_temperature = forecastArray[i]["temperature"].as<String>();
+    double forecast_temperature = forecastArray[i]["temperature"].as<double>();
     String forecast_time = forecastArray[i]["datetime"].as<String>();
     int startX = x + i * (width / 3);
 
@@ -181,7 +181,7 @@ void Dashboard::drawWeather()
     drawConditionIcon(forecast_condition, 56, startX + 35, forecast_line_y + 40);
 
     display.setFont(&Roboto_28);
-    DisplayHelpers::printCenteredText(display, forecast_temperature, startX + 58, forecast_line_y + 130);
+    DisplayHelpers::printCenteredText(display, String(forecast_temperature, 1), startX + 58, forecast_line_y + 130);
   }
 }
 
