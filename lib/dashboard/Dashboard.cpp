@@ -135,7 +135,7 @@ void Dashboard::drawWeather()
   const int x = 420;
   const int y = 10;
   const int width = 370;
-  const int forecast_line_y = y + 150;
+  const int forecast_line_y = y + 165;
 
   JsonObject weatherJson = doc["weather"];
   String condition = weatherJson["condition"].as<String>();
@@ -178,29 +178,26 @@ void Dashboard::drawWeather()
     display.setCursor(startX + 20, forecast_line_y + 30);
     display.println(forecast_time.substring(11, 13) + " Uhr");
 
-    drawConditionIcon(forecast_condition, 56, startX + 35, forecast_line_y + 33);
+    drawConditionIcon(forecast_condition, 56, startX + 35, forecast_line_y + 40);
 
     display.setFont(&Roboto_28);
-    DisplayHelpers::printCenteredText(display, forecast_temperature, startX + 58, forecast_line_y + 120);
+    DisplayHelpers::printCenteredText(display, forecast_temperature, startX + 58, forecast_line_y + 130);
   }
 }
 
 void Dashboard::drawWasteCalendar() {
   int dividier_width = 6;
   for(int i = 0; i < dividier_width; i++) {
-    display.drawFastHLine(400, 297 + i, 800, BLACK);
+    display.drawFastHLine(400, 340 + i, 800, BLACK);
   }
 
-  display.setFont(&Roboto_36);
-  display.setCursor(475, 345);
-  display.println("Abfuhrtermine");
 
   JsonArray wasteCalendarArray = doc["wasteCalendar"].as<JsonArray>();
   for(int i = 0; i < wasteCalendarArray.size(); i++) {
     String name = wasteCalendarArray[i]["name"].as<String>();
     String dateString = wasteCalendarArray[i]["dateString"].as<String>();
 
-    int y = 400 + (i / 2) * 115;
+    int y = 420 + (i / 2) * 115;
     int x = 440 + (i % 2) * 200;
   
     if(dateString == "morgen" || dateString == "heute") {
