@@ -126,7 +126,7 @@ void Dashboard::drawConditionIcon(String &condition, int size, int x, int y)
 
   Serial.println(filenameCharArray);
 
-  display.drawBitmapFromSD(filenameCharArray, x, y);
+  display.drawBitmapFromSd(filenameCharArray, x, y);
 }
 
 void Dashboard::drawWeather()
