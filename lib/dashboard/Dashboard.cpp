@@ -219,6 +219,16 @@ void Dashboard::drawWasteCalendar() {
 
 }
 
+void Dashboard::drawTime() {
+  JsonObject weatherJson = doc["currentDate"];
+  String timeString = weatherJson["time"].as<String>();
+
+  display.setFont(&Roboto_22);
+  display.setTextColor(GRAY_5);
+  display.setCursor(10, 590);
+  display.print(timeString);
+}
+
 void Dashboard::draw()
 {
   fetchData();
@@ -230,6 +240,7 @@ void Dashboard::draw()
   drawCalendarEvents();
   drawWeather();
   drawWasteCalendar();
+  drawTime();
 
   display.display();
 }

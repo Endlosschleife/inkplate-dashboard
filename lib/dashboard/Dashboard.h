@@ -15,6 +15,7 @@ class Dashboard {
         void fetchData();
         void drawConditionIcon(String &condition, int size, int x, int y);
         void drawWasteCalendar();
+        void drawTime();
     public:
         Dashboard(Inkplate &d): display(d) {};
         void draw();
