@@ -101,13 +101,17 @@ void setup()
   }
 
   // Setup mcp interrupts
-  // display.pinModeMCP(touchPadPin, INPUT);
-  // display.setIntOutput(1, true, true, HIGH);
-  // display.setIntPin(touchPadPin, RISING);
+  display.pinModeMCP(touchPadPin, INPUT);
+  display.setIntOutput(1, false, false, HIGH);
+  display.setIntPin(touchPadPin, RISING);
 
   // handle behaviour using wake up reason
   esp_sleep_wakeup_cause_t wakeup_reason;
   wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  Serial.print("Wake up reason: ");
+  Serial.println(wakeup_reason);
+
   switch (wakeup_reason)
   {
   case ESP_SLEEP_WAKEUP_EXT0:
@@ -118,10 +122,15 @@ void setup()
     break;
   }
 
+  //Isolate/disable GPIO12 on ESP32 (only to reduce power consumption in sleep)
+  rtc_gpio_isolate(GPIO_NUM_12); 
+  
+  // enable wakup from gpio 34 (mcp interrupt)
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_34, 1);
+
   // send to deep sleep
-  rtc_gpio_isolate(GPIO_NUM_12); //Isolate/disable GPIO12 on ESP32 (only to reduce power consumption in sleep)
+  Serial.println("going to deep sleep now.");
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  // esp_sleep_enable_ext0_wakeup(GPIO_NUM_34, 1); // touchpad wake up
   esp_deep_sleep_start();
 }
 
