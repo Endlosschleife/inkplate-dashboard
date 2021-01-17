@@ -166,7 +166,7 @@ void Dashboard::drawWeather()
 
   // forecast
   JsonArray forecastArray = weatherJson["forecast"].as<JsonArray>();
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < forecastArray.size(); i++)
   {
     String forecast_condition = forecastArray[i]["condition"].as<String>();
     double forecast_temperature = forecastArray[i]["temperature"].as<double>();
