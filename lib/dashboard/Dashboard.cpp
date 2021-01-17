@@ -1,7 +1,6 @@
 #include "Dashboard.h"
 
-const size_t capacity = JSON_ARRAY_SIZE(5) + JSON_ARRAY_SIZE(5) + JSON_ARRAY_SIZE(5) + 2 * JSON_ARRAY_SIZE(4) + 6 * JSON_OBJECT_SIZE(3) + 6 * JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(6) + 2000;
-DynamicJsonDocument doc(capacity);
+DynamicJsonDocument doc(ESP.getMaxAllocHeap());
 
 void Dashboard::drawDate()
 {
