@@ -29,11 +29,13 @@ void Dashboard::drawDate()
   display.println(month);
 }
 
-void Dashboard::fetchData()
+void Dashboard::fetchData(String endpoint)
 {
   HTTPClient http;
-  http.begin(API_URL);
+  http.begin(API_URL + endpoint);
   int httpCode = http.GET();
+
+  Serial.println(httpCode);
 
   if (httpCode != 200)
   {
@@ -99,7 +101,6 @@ void Dashboard::drawCalendarEvents()
         display.setCursor(10, y);
         display.print(title + " (ganzt.)");
       }
-      
     }
 
     // no events
@@ -184,25 +185,30 @@ void Dashboard::drawWeather()
   }
 }
 
-void Dashboard::drawWasteCalendar() {
+void Dashboard::drawWasteCalendar()
+{
   int dividier_width = 6;
-  for(int i = 0; i < dividier_width; i++) {
+  for (int i = 0; i < dividier_width; i++)
+  {
     display.drawFastHLine(400, 340 + i, 800, BLACK);
   }
 
-
   JsonArray wasteCalendarArray = doc["wasteCalendar"].as<JsonArray>();
-  for(int i = 0; i < wasteCalendarArray.size(); i++) {
+  for (int i = 0; i < wasteCalendarArray.size(); i++)
+  {
     String name = wasteCalendarArray[i]["name"].as<String>();
     String dateString = wasteCalendarArray[i]["dateString"].as<String>();
 
     int y = 420 + (i / 2) * 115;
     int x = 440 + (i % 2) * 200;
-  
-    if(dateString == "morgen" || dateString == "heute") {
+
+    if (dateString == "morgen" || dateString == "heute")
+    {
       display.setTextColor(WHITE);
       display.fillRoundRect(x - 10, y - 40, 140, 90, 3, BLACK);
-    } else {
+    }
+    else
+    {
       display.setTextColor(BLACK);
     }
 
@@ -214,32 +220,48 @@ void Dashboard::drawWasteCalendar() {
     display.setCursor(x, y + 35);
     display.print(dateString);
   }
-
-
 }
 
-void Dashboard::drawTime() {
+void Dashboard::drawTime()
+{
   JsonObject weatherJson = doc["currentDate"];
   String timeString = weatherJson["time"].as<String>();
 
   display.setFont(&Roboto_22);
-  display.setTextColor(GRAY_5);
+  display.setTextColor(WHITE);
   display.setCursor(10, 590);
   display.print(timeString);
 }
 
-void Dashboard::draw()
+void Dashboard::draw(String endpoint)
 {
-  fetchData();
-
+  fetchData(endpoint);
   display.fillRect(0, 0, 400, 600, BLACK);
-
-
   drawDate();
   drawCalendarEvents();
   drawWeather();
   drawWasteCalendar();
   drawTime();
+}
 
+void Dashboard::update()
+{
+  Serial.println("update display");
+
+  draw("/dashboard");
   display.display();
+}
+
+void Dashboard::partialUpdate()
+{
+  Serial.println("partial update display");
+
+  // draw old screen
+  draw("/dashboard/last");
+  display.preloadScreen();
+
+  // draw new screen
+  display.clearDisplay();    
+  draw("/dashboard");
+  display.partialUpdate(INKPLATE_FORCE_PARTIAL);
 }

@@ -1,6 +1,5 @@
 #include "Inkplate.h"
 #include "fonts.h"
-#include "colors.h"
 #include "display_helpers.h"
 #include "HTTPClient.h"
 #include <ArduinoJson.h>
@@ -12,11 +11,13 @@ class Dashboard {
         void drawDate();
         void drawCalendarEvents();
         void drawWeather();
-        void fetchData();
+        void fetchData(String endpoint);
         void drawConditionIcon(String &condition, int size, int x, int y);
         void drawWasteCalendar();
         void drawTime();
+        void draw(String endpoint);
     public:
         Dashboard(Inkplate &d): display(d) {};
-        void draw();
+        void update();
+        void partialUpdate();
 };

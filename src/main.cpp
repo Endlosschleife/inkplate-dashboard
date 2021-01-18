@@ -10,8 +10,9 @@
 #define uS_TO_S_FACTOR 1000000
 #define TIME_TO_SLEEP 30 * 60 // time to sleep in seconds
 
-Inkplate display(INKPLATE_3BIT);
+Inkplate display(INKPLATE_1BIT);
 RTC_DATA_ATTR int selectedScreen = 0;
+RTC_DATA_ATTR int wakeupCounter = 0;
 
 byte touchPadPin = 10;
 
@@ -21,9 +22,6 @@ ImageScreen imageScreen = ImageScreen(display);
 
 void connectWifi()
 {
-  display.print("Connecting to WiFi...");
-  display.partialUpdate();
-
   //Connect to the WiFi network.
   int attempts = 0;
   WiFi.mode(WIFI_MODE_STA);
@@ -32,8 +30,6 @@ void connectWifi()
   {
     attempts++;
     delay(500);
-    display.print(".");
-    display.partialUpdate();
   }
 
   // still not connected: reset wifi see issue: https://github.com/espressif/arduino-esp32/issues/2501
@@ -66,7 +62,7 @@ void displayScreen()
   switch (selectedScreen)
   {
   case 0:
-    dashboard.draw();
+    dashboard.update();
     break;
   case 1:
     imageScreen.draw();
@@ -87,6 +83,21 @@ void nextScreen()
   selectedScreen++;
   selectedScreen = selectedScreen % 2;
   displayScreen();
+}
+
+void updateScreen()
+{
+  wakeupCounter++;
+  if (wakeupCounter > 6) // after a couple of partial updates the colors are washed out
+  {
+    wakeupCounter = 0;
+    displayScreen();
+  }
+  else
+  {
+    connectWifi();
+    dashboard.partialUpdate();
+  }
 }
 
 void setup()
@@ -117,14 +128,17 @@ void setup()
   case ESP_SLEEP_WAKEUP_EXT0:
     nextScreen();
     break;
+  case ESP_SLEEP_WAKEUP_TIMER:
+    updateScreen();
+    break;
   default:
     displayScreen();
     break;
   }
 
   //Isolate/disable GPIO12 on ESP32 (only to reduce power consumption in sleep)
-  rtc_gpio_isolate(GPIO_NUM_12); 
-  
+  rtc_gpio_isolate(GPIO_NUM_12);
+
   // enable wakup from gpio 34 (mcp interrupt)
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_34, 1);
 
