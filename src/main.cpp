@@ -16,9 +16,7 @@ RTC_DATA_ATTR int wakeupCounter = 0;
 
 byte touchPadPin = 10;
 
-// screens
-Dashboard dashboard = Dashboard(display);
-ImageScreen imageScreen = ImageScreen(display);
+long lastMillis = 0;
 
 void connectWifi()
 {
@@ -54,24 +52,6 @@ void connectWifi()
   }
 }
 
-void displayScreen()
-{
-  connectWifi();
-  display.clearDisplay();
-
-  switch (selectedScreen)
-  {
-  case 0:
-    dashboard.update();
-    break;
-  case 1:
-    imageScreen.draw();
-    break;
-  default:
-    break;
-  }
-}
-
 void nextScreen()
 {
   display.clearDisplay();
@@ -82,22 +62,42 @@ void nextScreen()
 
   selectedScreen++;
   selectedScreen = selectedScreen % 2;
-  displayScreen();
 }
 
-void updateScreen()
+void sendToDeepSleep(int minutes)
 {
-  wakeupCounter++;
-  if (wakeupCounter > 6) // after a couple of partial updates the colors are washed out
+  //Isolate/disable GPIO12 on ESP32 (only to reduce power consumption in sleep)
+  rtc_gpio_isolate(GPIO_NUM_12);
+  // enable wakup from gpio 34 (mcp interrupt)
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_34, 1);
+  // go to sleep
+  Serial.println("Going to deep sleep for " + String(minutes) + " minutes now.");
+  esp_sleep_enable_timer_wakeup(minutes * uS_TO_S_FACTOR);
+  esp_deep_sleep_start();
+}
+
+void handleDashboardScreen(boolean updateScreen)
+{
+  Serial.println("Handle dashboard screen");
+  connectWifi();
+  Dashboard dashboard = Dashboard(display);
+  if (updateScreen)
   {
-    wakeupCounter = 0;
-    displayScreen();
+    dashboard.update();
   }
   else
   {
-    connectWifi();
     dashboard.partialUpdate();
   }
+  sendToDeepSleep(TIME_TO_SLEEP * 60);
+}
+
+void handleImageScreen(boolean updateScreen)
+{
+  Serial.println("Handle image screen");
+  ImageScreen imageScreen = ImageScreen(display);
+  imageScreen.draw();
+  sendToDeepSleep(60 * 60 * 24);
 }
 
 void setup()
@@ -123,29 +123,37 @@ void setup()
   Serial.print("Wake up reason: ");
   Serial.println(wakeup_reason);
 
-  switch (wakeup_reason)
+  // whether the screen should be fully updated (true) or partial update is enough (false)
+  boolean shouldUpdate = wakeup_reason != ESP_SLEEP_WAKEUP_TIMER; // always if not woken up by timer
+
+  // go to next screen
+  if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0)
   {
-  case ESP_SLEEP_WAKEUP_EXT0:
     nextScreen();
-    break;
-  case ESP_SLEEP_WAKEUP_TIMER:
-    updateScreen();
-    break;
-  default:
-    displayScreen();
-    break;
+    shouldUpdate = true;
   }
 
-  //Isolate/disable GPIO12 on ESP32 (only to reduce power consumption in sleep)
-  rtc_gpio_isolate(GPIO_NUM_12);
+  // force full update if wakeup counter exceeds limit
+  if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER)
+  {
+    wakeupCounter++;
+    if (wakeupCounter > 6) // after a couple of partial updates the colors are washed out
+    {
+      Serial.println("Wakeup counter exceeds limit. Force full screen update.");
+      wakeupCounter = 0;
+      shouldUpdate = true;
+    }
+  }
 
-  // enable wakup from gpio 34 (mcp interrupt)
-  esp_sleep_enable_ext0_wakeup(GPIO_NUM_34, 1);
-
-  // send to deep sleep
-  Serial.println("going to deep sleep now.");
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  esp_deep_sleep_start();
+  switch (selectedScreen)
+  {
+  case 0:
+    handleDashboardScreen(shouldUpdate);
+    break;
+  case 1:
+    handleImageScreen(shouldUpdate);
+    break;
+  }
 }
 
 void loop()
