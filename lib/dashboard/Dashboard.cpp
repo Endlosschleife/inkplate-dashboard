@@ -44,6 +44,7 @@ void Dashboard::fetchData(String endpoint)
   }
 
   // Parse JSON object and load into global doc
+  doc.clear();
   DeserializationError error = deserializeJson(doc, http.getStream());
   if (error)
   {
@@ -123,9 +124,6 @@ void Dashboard::drawConditionIcon(String &condition, int size, int x, int y)
   String filename = "weather/" + condition + "_" + size + ".bmp";
   char filenameCharArray[filename.length() + 1];
   filename.toCharArray(filenameCharArray, filename.length() + 1);
-
-  Serial.println(filenameCharArray);
-
   display.drawBitmapFromSd(filenameCharArray, x, y);
 }
 
