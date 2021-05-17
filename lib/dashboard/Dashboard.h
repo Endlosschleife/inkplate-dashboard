@@ -9,12 +9,13 @@ class Dashboard {
     private:
         Inkplate &display;
         void drawDate();
-        void drawCalendarEvents();
+        int drawCalendarEvents();
         void drawWeather();
         void fetchData(String endpoint);
         void drawConditionIcon(String &condition, int size, int x, int y);
         void drawWasteCalendar();
         void drawTime();
+        void drawReminders(int y);
         void draw(String endpoint);
     public:
         Dashboard(Inkplate &d): display(d) {};

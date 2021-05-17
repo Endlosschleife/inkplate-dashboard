@@ -17,7 +17,7 @@ void Dashboard::drawDate()
   DisplayHelpers::printCenteredText(display, day, 60, 90);
 
   // day of week
-  display.setFont(&Roboto_Light_48);
+  display.setFont(&Roboto_Bold_48);
   display.setTextColor(WHITE);
   display.setCursor(128, 48);
   display.print(day_of_week);
@@ -54,7 +54,7 @@ void Dashboard::fetchData(String endpoint)
   }
 }
 
-void Dashboard::drawCalendarEvents()
+int Dashboard::drawCalendarEvents()
 {
 
   JsonArray eventGroups = doc["events"].as<JsonArray>(); // todo rename events property
@@ -116,6 +116,35 @@ void Dashboard::drawCalendarEvents()
 
     y += 40; // some bottom margin
   }
+
+  return y;
+}
+
+void Dashboard::drawReminders(int y) {
+
+  y += 42;
+
+  display.setFont(&Roboto_Bold_48);
+  display.setTextColor(WHITE);
+  display.setCursor(10, y);
+  display.print("Aufgaben");
+
+  y += 5;
+
+  JsonArray reminders = doc["reminders"].as<JsonArray>();
+  
+  for(JsonVariant item : reminders) {
+    y += 42;
+    String value = item.as<String>();
+
+    display.fillRect(10, y - 14, 10, 10, WHITE);
+
+    display.setFont(&Roboto_28);
+    display.setTextColor(WHITE);
+    display.setCursor(27, y);
+    display.print(value);
+  }
+
 }
 
 void Dashboard::drawConditionIcon(String &condition, int size, int x, int y)
@@ -236,7 +265,8 @@ void Dashboard::draw(String endpoint)
   fetchData(endpoint);
   display.fillRect(0, 0, 400, 600, BLACK);
   drawDate();
-  drawCalendarEvents();
+  int lastY = drawCalendarEvents();
+  drawReminders(lastY);
   drawWeather();
   drawWasteCalendar();
   drawTime();
